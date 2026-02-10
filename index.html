@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Valentine's Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,400&family=Sarabun:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  :root { --crimson:#c0000f; --blood:#8b0000; --ember:#ff2040; --bone:#f0e8e8; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    min-height:100vh; background:#000;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Sarabun",sans-serif; overflow:hidden; position:relative;
+  }
+  .bg-layer {
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse at 15% 85%, rgba(139,0,0,0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 15%, rgba(192,0,15,0.2) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 50%, rgba(20,0,0,0.95) 0%, #000 100%);
+    pointer-events:none; z-index:0;
+  }
+  .ember {
+    position:fixed; width:2px; height:2px;
+    background:var(--ember); border-radius:50%;
+    box-shadow:0 0 4px 2px rgba(255,32,64,0.6);
+    pointer-events:none; animation:emberFloat linear infinite; z-index:1;
+  }
+  @keyframes emberFloat {
+    0%   { transform:translateY(0) scale(1); opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:0.4; }
+    100% { transform:translateY(calc(var(--dy)*-1px)) translateX(calc(var(--dx)*1px)) scale(0); opacity:0; }
+  }
+  #heart-scene {
+    position:relative; z-index:10;
+    display:flex; flex-direction:column; align-items:center; gap:28px;
+    transition:opacity 0.9s ease, transform 0.9s ease;
+  }
+  #heart-scene.fade-out { opacity:0; transform:scale(0.75) translateY(-20px); pointer-events:none; }
+  .heart-wrapper {
+    position:relative; width:230px; height:210px;
+    cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:none;
+    filter:drop-shadow(0 0 16px rgba(192,0,15,0.4)); transition:filter 0.3s ease;
+  }
+  .heart-wrapper:hover { filter:drop-shadow(0 0 28px rgba(192,0,15,0.65)); }
+  .heart-wrapper.pressing {
+    filter:drop-shadow(0 0 50px rgba(255,32,64,0.9));
+    animation:heartbeat 0.45s ease-in-out infinite;
+  }
+  @keyframes heartbeat { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  #heart-svg { width:100%; height:100%; overflow:visible; }
+  .heart-outline { fill:none; stroke:#c0000f; stroke-width:2.5; filter:drop-shadow(0 0 5px rgba(192,0,15,0.8)); }
+  .heart-fill { fill:url(#heartGrad); }
+  .particle { position:fixed; pointer-events:none; font-size:18px; animation:pFly 1.1s ease-out forwards; }
+  @keyframes pFly {
+    0%   { transform:translate(-50%,-50%) scale(0); opacity:1; }
+    60%  { opacity:1; }
+    100% { transform:translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.4); opacity:0; }
+  }
+  .status-text {
+    color:var(--bone); font-size:17px; font-weight:200;
+    letter-spacing:0.08em; text-align:center;
+    text-shadow:0 0 20px rgba(192,0,15,0.6); min-height:26px;
+  }
+  .hint-sub {
+    font-size:12px; color:rgba(192,0,15,0.7);
+    text-align:center; letter-spacing:0.15em;
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+
+  #card-scene {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:20; opacity:0; pointer-events:none;
+    transition:opacity 1s ease; padding:16px; overflow-y:auto;
+  }
+  #card-scene.visible { opacity:1; pointer-events:all; }
+  .card {
+    background:linear-gradient(160deg,#111 0%,#1c0808 55%,#0d0d0d 100%);
+    border:1px solid rgba(192,0,15,0.3); border-radius:20px; padding:26px 24px 20px;
+    max-width:400px; width:100%;
+    box-shadow:0 0 0 1px rgba(192,0,15,0.12),0 0 60px rgba(139,0,0,0.3),0 20px 60px rgba(0,0,0,0.85),inset 0 1px 0 rgba(192,0,15,0.08);
+    transform:scale(0.65) translateY(80px);
+    transition:transform 1.1s cubic-bezier(0.175,0.885,0.32,1.275);
+    position:relative; overflow:hidden;
+  }
+  #card-scene.visible .card { transform:scale(1) translateY(0); }
+  .card::before {
+    content:""; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,#8b0000,#c0000f,#ff2040,#c0000f,#8b0000,transparent);
+  }
+  .card-date {
+    text-align:center; font-family:"Cormorant Garamond",serif;
+    font-style:italic; font-size:11px; color:rgba(192,0,15,0.65);
+    letter-spacing:0.2em; text-transform:uppercase; margin-bottom:18px;
+    opacity:0; animation:fadeInUp 0.6s ease 0.3s forwards;
+  }
+  .photos-row {
+    display:flex; justify-content:center; align-items:center;
+    gap:12px; margin-bottom:20px;
+    opacity:0; animation:fadeInUp 0.7s ease 0.5s forwards;
+  }
+  .photo-frame { position:relative; flex-shrink:0; }
+  .photo-frame img {
+    width:118px; height:148px; object-fit:cover; object-position:center top;
+    border-radius:12px; display:block; filter:contrast(1.05) saturate(0.85) brightness(0.95);
+  }
+  .photo-frame::before {
+    content:""; position:absolute; inset:-2px; border-radius:14px;
+    background:linear-gradient(135deg,var(--crimson),transparent 40%,var(--blood));
+    z-index:-1; opacity:0.8;
+  }
+  .photo-frame::after {
+    content:""; position:absolute; inset:0; border-radius:12px;
+    background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.5) 100%);
+    pointer-events:none;
+  }
+  .between-heart {
+    font-size:26px; color:var(--crimson);
+    animation:bhPulse 1.8s ease-in-out infinite;
+    filter:drop-shadow(0 0 10px rgba(192,0,15,0.9)); line-height:1;
+  }
+  @keyframes bhPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+  .card-title {
+    font-family:"Cormorant Garamond",serif; font-size:22px; font-weight:300;
+    color:var(--bone); text-align:center; letter-spacing:0.05em;
+    text-shadow:0 0 20px rgba(192,0,15,0.35); margin-bottom:2px;
+    opacity:0; animation:fadeInUp 0.6s ease 0.8s forwards;
+  }
+  .card-title span { color:var(--ember); font-style:italic; }
+  .divider {
+    display:flex; align-items:center; gap:10px; margin:10px 0;
+    opacity:0; animation:fadeInUp 0.5s ease 1s forwards;
+  }
+  .divider::before,.divider::after { content:""; flex:1; height:1px; }
+  .divider::before { background:linear-gradient(90deg,transparent,rgba(192,0,15,0.45)); }
+  .divider::after  { background:linear-gradient(90deg,rgba(192,0,15,0.45),transparent); }
+  .divider span { color:var(--crimson); font-size:12px; }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+  .card-message {
+    font-size:14px; font-weight:300; color:rgba(240,232,232,0.75);
+    text-align:center; line-height:2.1; letter-spacing:0.03em;
+    margin-bottom:4px; min-height:140px;
+  }
+  .card-message .hl { color:var(--bone); font-weight:400; }
+  .tw-cursor {
+    display:inline-block; width:2px; height:1em;
+    background:var(--ember); margin-left:2px;
+    vertical-align:text-bottom; animation:blink 0.7s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  .card-signature {
+    font-family:"Cormorant Garamond",serif; font-style:italic;
+    font-size:15px; color:var(--crimson); text-align:right;
+    margin-top:12px; opacity:0; transition:opacity 0.8s ease;
+  }
+  .card-signature.show { opacity:0.9; }
+
+  /* MUSIC PLAYER */
+  .music-player {
+    background:#080808; border:1px solid rgba(192,0,15,0.2);
+    border-radius:50px; padding:11px 18px;
+    max-width:400px; width:100%;
+    display:flex; align-items:center; gap:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6),0 0 0 1px rgba(192,0,15,0.1);
+    margin-top:12px; transform:translateY(40px); opacity:0;
+    transition:opacity 1s ease 0.7s, transform 1s ease 0.7s;
+  }
+  #card-scene.visible .music-player { opacity:1; transform:translateY(0); }
+  .music-disc {
+    width:42px; height:42px; border-radius:50%;
+    background:radial-gradient(circle,#2a0808 30%,#8b0000 60%,#1a1a1a 100%);
+    border:2px solid rgba(192,0,15,0.4);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; position:relative;
+    animation:spinDisc 6s linear infinite paused;
+  }
+  .music-disc::after {
+    content:""; width:8px; height:8px; border-radius:50%;
+    background:#111; border:1px solid rgba(192,0,15,0.5); position:absolute;
+  }
+  .music-disc.playing { animation-play-state:running; }
+  @keyframes spinDisc { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .music-info { flex:1; min-width:0; }
+  .music-title { color:var(--bone); font-size:12px; font-weight:400; letter-spacing:0.05em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .music-sub { color:rgba(192,0,15,0.55); font-size:10px; margin-top:2px; letter-spacing:0.08em; }
+  .mprog-wrap { height:2px; background:rgba(255,255,255,0.07); border-radius:2px; margin-top:6px; overflow:hidden; cursor:pointer; }
+  .mprog-fill { height:100%; background:linear-gradient(90deg,var(--blood),var(--crimson),var(--ember)); border-radius:2px; width:0%; }
+  .waveform { display:flex; align-items:center; gap:2px; height:24px; }
+  .wb { width:2px; background:var(--crimson); border-radius:2px; height:4px; animation:wv 0.6s ease-in-out infinite; }
+  .wb:nth-child(1){animation-delay:0s;} .wb:nth-child(2){animation-delay:0.1s;} .wb:nth-child(3){animation-delay:0.2s;} .wb:nth-child(4){animation-delay:0.05s;} .wb:nth-child(5){animation-delay:0.15s;}
+  @keyframes wv { 0%,100%{height:4px;} 50%{height:18px;} }
+  .wb:not(.on){ animation-play-state:paused !important; height:4px !important; }
+  .play-btn {
+    width:40px; height:40px; border-radius:50%;
+    background:linear-gradient(135deg,var(--crimson),var(--blood));
+    border:none; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; color:white; font-size:14px; flex-shrink:0;
+    box-shadow:0 0 15px rgba(192,0,15,0.5); transition:transform 0.2s,box-shadow 0.2s;
+  }
+  .play-btn:hover { transform:scale(1.1); box-shadow:0 0 25px rgba(192,0,15,0.8); }
+  .play-btn:active { transform:scale(0.92); }
+  .cf { position:fixed; width:8px; height:8px; top:-10px; pointer-events:none; z-index:100; animation:cfFall linear forwards; }
+  @keyframes cfFall { 0%{transform:translateY(0) rotate(0deg);opacity:1;} 100%{transform:translateY(110vh) rotate(calc(var(--r)*1deg));opacity:0;} }
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<!-- Hidden audio element -->
+<audio id="bgAudio" loop preload="auto">
+    <source src="./videoplayback.mp3">
+</audio>
+
+<!-- HEART SCENE -->
+<div id="heart-scene">
+  <div class="heart-wrapper" id="heartWrapper">
+    <svg id="heart-svg" viewBox="0 0 200 185" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="heartGrad" x1="0%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stop-color="#ff2040"/>
+          <stop offset="50%" stop-color="#c0000f"/>
+          <stop offset="100%" stop-color="#7a0008"/>
+        </linearGradient>
+        <clipPath id="fillClip">
+          <rect id="fillRect" x="0" y="185" width="200" height="0"/>
+        </clipPath>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path class="heart-fill" clip-path="url(#fillClip)"
+        d="M100 162 C58 136, 8 104, 8 62 C8 32, 30 12, 56 12 C72 12, 87 21, 100 37 C113 21, 128 12, 144 12 C170 12, 192 32, 192 62 C192 104, 142 136, 100 162 Z"/>
+      <path class="heart-outline" filter="url(#glow)"
+        d="M100 162 C58 136, 8 104, 8 62 C8 32, 30 12, 56 12 C72 12, 87 21, 100 37 C113 21, 128 12, 144 12 C170 12, 192 32, 192 62 C192 104, 142 136, 100 162 Z"/>
+    </svg>
+  </div>
+  <div class="status-text" id="statusText">กดค้างที่หัวใจสิ</div>
+  <div class="hint-sub" id="hintSub">— hold to fill —</div>
+</div>
+
+<!-- CARD SCENE -->
+<div id="card-scene">
+  <div class="card">
+    <div class="card-date">✦ 14 February &middot; Valentine's Day ✦</div>
+    <div class="photos-row">
+      <div class="photo-frame">
+        <img src="./S__6692879.jpg" alt="" style="object-position: center top;">
+      </div>
+      <div class="between-heart">&#9829;</div>
+      <div class="photo-frame">
+        <img src="./S__6692880.jpg" alt="" style="object-position: center center;">
+      </div>
+    </div>
+    <div class="card-title">Happy <span>Valentine's</span> Day</div>
+    <div class="divider"><span>&#9829;</span></div>
+    <div class="card-message" id="cardMessage">
+      <span id="typeTarget"></span><span class="tw-cursor" id="twCursor"></span>
+    </div>
+    <div class="card-signature" id="cardSig">— ด้วยรัก &#9829;</div>
+  </div>
+
+  <div class="music-player">
+    <div class="music-disc" id="musicDisc"></div>
+    <div class="music-info">
+      <div class="music-title">รักนานๆ นะพิพิม</div>
+      <div class="music-sub">Valentine's Mix &middot; 2025</div>
+      <div class="mprog-wrap" id="progWrap">
+        <div class="mprog-fill" id="progressBar"></div>
+      </div>
+    </div>
+    <div class="waveform">
+      <div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div>
+    </div>
+    <button class="play-btn" id="playBtn" onclick="toggleMusic()">&#9654;</button>
+  </div>
+</div>
+
+<script>
+// Embers
+for(var i=0;i<30;i++){
+  var e=document.createElement("div");
+  e.className="ember";
+  e.style.left=Math.random()*100+"vw";
+  e.style.top=(40+Math.random()*60)+"vh";
+  e.style.setProperty("--dy",100+Math.random()*200);
+  e.style.setProperty("--dx",(Math.random()-0.5)*100);
+  e.style.animationDuration=(4+Math.random()*6)+"s";
+  e.style.animationDelay=(Math.random()*8)+"s";
+  e.style.opacity="0";
+  document.body.appendChild(e);
+}
+
+// Heart fill
+var hw=document.getElementById("heartWrapper");
+var fr=document.getElementById("fillRect");
+var st=document.getElementById("statusText");
+var hs=document.getElementById("hintSub");
+var heartScene=document.getElementById("heart-scene");
+var cardScene=document.getElementById("card-scene");
+var fp=0,holding=false,iv=null,done=false;
+
+function setFill(p){
+  fp=Math.max(0,Math.min(100,p));
+  var y=185-(185*fp/100);
+  fr.setAttribute("y",y);
+  fr.setAttribute("height",185-y+10);
+  if(fp>0&&fp<100){st.textContent="กดค้างไว้นะ...";hs.style.opacity="0";}
+  else if(fp<=0){st.textContent="กดค้างที่หัวใจสิ";hs.style.opacity="1";}
+}
+
+function startFill(){
+  if(done)return;holding=true;
+  hw.classList.add("pressing");clearInterval(iv);
+  iv=setInterval(function(){
+    if(!holding)return;setFill(fp+1.3);
+    if(fp>=100){clearInterval(iv);onFilled();}
+  },28);
+}
+
+function stopFill(){
+  if(done)return;holding=false;
+  hw.classList.remove("pressing");clearInterval(iv);
+  if(fp<100&&fp>0){
+    st.textContent="อย่าปล่อย! กดต่อนะ";
+    iv=setInterval(function(){if(holding)return;setFill(fp-0.6);if(fp<=0)clearInterval(iv);},35);
+  }
+}
+
+function onFilled(){
+  done=true;holding=false;
+  hw.classList.remove("pressing");
+  spawnParticles();
+  hw.style.transition="transform 0.5s ease,opacity 0.5s ease";
+  hw.style.transform="scale(1.35)";
+  hw.style.filter="drop-shadow(0 0 60px rgba(255,32,64,1))";
+  setTimeout(function(){
+    heartScene.classList.add("fade-out");
+    spawnConfetti();
+    setTimeout(function(){
+      heartScene.style.display="none";
+      cardScene.classList.add("visible");
+      setTimeout(function(){startTypewriter();},1200);
+      setTimeout(function(){startMusic();},1400);
+    },600);
+  },350);
+}
+
+function spawnParticles(){
+  var r=hw.getBoundingClientRect();
+  var cx=r.left+r.width/2,cy=r.top+r.height/2;
+  var em=["♥","✦","❤️","🌹","💖","✨"];
+  for(var i=0;i<14;i++){
+    (function(){
+      var el=document.createElement("div");
+      el.className="particle";
+      el.textContent=em[Math.floor(Math.random()*em.length)];
+      var a=Math.random()*Math.PI*2,d=80+Math.random()*130;
+      el.style.left=cx+"px";el.style.top=cy+"px";
+      el.style.setProperty("--tx",Math.cos(a)*d+"px");
+      el.style.setProperty("--ty",Math.sin(a)*d+"px");
+      el.style.animationDuration=(0.9+Math.random()*0.5)+"s";
+      el.style.animationDelay=(Math.random()*0.2)+"s";
+      document.body.appendChild(el);
+      setTimeout(function(){if(el.parentNode)el.remove();},1600);
+    })();
+  }
+}
+
+function spawnConfetti(){
+  var cols=["#c0000f","#ff2040","#8b0000","#f0e8e8","#c9748a","#fff","#ff6060"];
+  for(var i=0;i<70;i++){
+    (function(){
+      var el=document.createElement("div");
+      el.className="cf";
+      el.style.left=Math.random()*100+"vw";
+      el.style.background=cols[Math.floor(Math.random()*cols.length)];
+      el.style.setProperty("--r",Math.random()*720-360);
+      el.style.animationDuration=(2+Math.random()*2.5)+"s";
+      el.style.animationDelay=(Math.random()*0.4)+"s";
+      el.style.borderRadius=Math.random()>0.5?"50%":"1px";
+      document.body.appendChild(el);
+      setTimeout(function(){if(el.parentNode)el.remove();},4000);
+    })();
+  }
+}
+
+hw.addEventListener("mousedown",function(e){e.preventDefault();startFill();});
+hw.addEventListener("mouseup",stopFill);
+hw.addEventListener("mouseleave",stopFill);
+hw.addEventListener("touchstart",function(e){e.preventDefault();startFill();},{passive:false});
+hw.addEventListener("touchend",function(e){e.preventDefault();stopFill();});
+hw.addEventListener("touchcancel",stopFill);
+document.addEventListener("mouseup",stopFill);
+
+// Typewriter
+var lines=[
+  {t:"ขอบคุณที่เป็นคนพิเศษในชีวิตฉัน",hl:false},
+  {t:"ทุกวันที่มีเธออยู่ข้างๆ",hl:false},
+  {t:"ทำให้โลกใบนี้สวยงามขึ้นมาก",hl:false},
+  {t:"",hl:false},
+  {t:"ฉันรักเธอ ทุกวัน ทุกเวลา",hl:false},
+  {t:"วันวาเลนไทน์นี้ขอบอกว่า",hl:false},
+  {t:"เธอคือทุกอย่างของฉัน",hl:true}
+];
+
+function startTypewriter(){
+  var target=document.getElementById("typeTarget");
+  var cursor=document.getElementById("twCursor");
+  var li=0,ci=0,html="";
+  function typeNext(){
+    if(li>=lines.length){
+      cursor.style.display="none";
+      document.getElementById("cardSig").classList.add("show");
+      return;
+    }
+    var line=lines[li];
+    if(line.t===""){
+      html+="<br>";target.innerHTML=html;
+      li++;ci=0;setTimeout(typeNext,120);return;
+    }
+    if(ci<line.t.length){
+      var cur=html;
+      if(line.hl) cur+="<span class='hl'>"+line.t.substring(0,ci+1)+"</span>";
+      else cur+=line.t.substring(0,ci+1);
+      target.innerHTML=cur;ci++;
+      setTimeout(typeNext,300+Math.random()*30);
+    } else {
+      if(line.hl) html+="<span class='hl'>"+line.t+"</span>";
+      else html+=line.t;
+      html+="<br>";target.innerHTML=html;
+      li++;ci=0;setTimeout(typeNext,380);
+    }
+  }
+  typeNext();
+}
+
+// Music player with real audio
+var audio=document.getElementById("bgAudio");
+var playing=false;
+var disc=document.getElementById("musicDisc");
+var pb=document.getElementById("progressBar");
+var wbs=document.querySelectorAll(".wb");
+var progWrap=document.getElementById("progWrap");
+
+// Update progress bar from audio currentTime
+audio.addEventListener("timeupdate",function(){
+  if(audio.duration){
+    pb.style.width=(audio.currentTime/audio.duration*100)+"%";
+  }
+});
+
+// Click progress bar to seek
+progWrap.addEventListener("click",function(e){
+  if(!audio.duration)return;
+  var rect=progWrap.getBoundingClientRect();
+  var ratio=(e.clientX-rect.left)/rect.width;
+  audio.currentTime=ratio*audio.duration;
+});
+
+function startMusic(){
+  audio.play().then(function(){
+    playing=true;
+    document.getElementById("playBtn").innerHTML="&#9646;&#9646;";
+    disc.classList.add("playing");
+    wbs.forEach(function(b){b.classList.add("on");});
+  }).catch(function(err){
+    console.log("Autoplay blocked:",err);
+    // Show play button hint
+    document.getElementById("playBtn").style.boxShadow="0 0 25px rgba(255,32,64,0.9)";
+  });
+}
+
+function pauseMusic(){
+  audio.pause();
+  playing=false;
+  document.getElementById("playBtn").innerHTML="&#9654;";
+  disc.classList.remove("playing");
+  wbs.forEach(function(b){b.classList.remove("on");});
+}
+
+function toggleMusic(){
+  if(playing)pauseMusic();else startMusic();
+}
+
+setFill(0);
+</script>
+</body>
+</html>
