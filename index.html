@@ -441,11 +441,23 @@ var lines=[
 function startTypewriter(){
   var target=document.getElementById("typeTarget");
   var cursor=document.getElementById("twCursor");
+  var card=document.querySelector(".card");
   var li=0,ci=0,html="";
+  
+  function smoothScrollToBottom(){
+    // Smooth scroll card to bottom
+    card.scrollTo({
+      top: card.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+  
   function typeNext(){
     if(li>=lines.length){
       cursor.style.display="none";
       document.getElementById("cardSig").classList.add("show");
+      // Final scroll to show signature
+      setTimeout(smoothScrollToBottom, 300);
       return;
     }
     var line=lines[li];
@@ -458,12 +470,21 @@ function startTypewriter(){
       if(line.hl) cur+="<span class='hl'>"+line.t.substring(0,ci+1)+"</span>";
       else cur+=line.t.substring(0,ci+1);
       target.innerHTML=cur;ci++;
+      
+      // Auto-scroll every few characters
+      if(ci % 15 === 0) smoothScrollToBottom();
+      
       setTimeout(typeNext,100+Math.random()*30);
     } else {
       if(line.hl) html+="<span class='hl'>"+line.t+"</span>";
       else html+=line.t;
       html+="<br>";target.innerHTML=html;
-      li++;ci=0;setTimeout(typeNext,380);
+      li++;ci=0;
+      
+      // Scroll after each line
+      smoothScrollToBottom();
+      
+      setTimeout(typeNext,380);
     }
   }
   typeNext();
